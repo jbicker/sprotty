@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2017-2021 TypeFox and others.
+ * Copyright (c) 2017-2024 TypeFox and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,6 +23,7 @@ import runRandomGraphDistributed from "./random-graph-distributed/src/standalone
 import runSvgPreRendered from "./svg/src/standalone";
 import runMulticore from "./multicore/src/multicore";
 import runFlowchart from "./flowchart/src/standalone";
+import runMindmap from "./mindmap/src/standalone";
 
 const appDiv = document.getElementById('sprotty-app');
 if (appDiv) {
@@ -41,6 +42,8 @@ if (appDiv) {
         runMulticore();
     else if (appMode === 'flowchart')
         runFlowchart();
+    else if (appMode === 'mindmap')
+        runMindmap();
     else
         throw new Error('Dunno what to do :-(');
 }
