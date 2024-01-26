@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sprotty Mindmap Example</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/mindmap.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function toggleShortcuts(){
+            var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+            var mac = document.getElementById('mac');
+            var other = document.getElementById('other');
+            if (isMac) {
+                mac.style.display = 'block';
+                other.style.display = 'none';
+            } else {
+                mac.style.display = 'none';
+                other.style.display = 'block';
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container h-100 d-flex flex-column">
+        <div class="row" id="sprotty-app" data-app="mindmap">
+            <div class="col-md-10">
+                <h1>Sprotty Mindmap Example</h1>
+            </div>
+            <div class="help col-md-2">
+                <a href="https://sprotty.org/docs/user_interaction/">Help</a>
+            </div>
+        </div>
+        <div class="row flex-grow-1 mb-3">
+            <div class="col-md-12 d-flex flex-column flex-grow-1">
+                <div id="sprotty" class="sprotty h-100"/>
+            </div>
+            <div class="footer">
+                <div id="mac" class="shortcuts">
+                    <b>Fit to screen:</b> Cmd+Shift+F, <b>Center selected:</b> Cmd+Shift+C, <b>Export SVG:</b> Cmd+Shift+E
+                </div>
+                <div id="other" class="shortcuts" style="display: none;">
+                    <b>Fit to screen:</b> Ctrl+Shift+F, <b>Center selected:</b> Ctrl+Shift+C, <b>Export SVG:</b> Ctrl+Shift+E
+                </div>
+                <div class="copyright">
+                    &copy; 2024 <a href="https://www.typefox.io/">TypeFox GmbH</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="../resources/bundle.js"></script>
+</body>
+</html>
