@@ -66,3 +66,48 @@ The mindmap is currently in its most basic form - just showing a single node wit
 - Editing node content
 - Layout algorithms for mindmap-style arrangement
 - Interaction handlers for user manipulation
+
+## Step 2: Adding Interactive Features
+
+In this step, we've enhanced the mindmap with interactive features, focusing on node interaction and visual feedback. Here's what we've implemented:
+
+### Enhanced Node Styling
+
+We've added new CSS styles to improve node interactivity:
+
+### New Components
+
+1. **Add Button View (`mindmap-views.tsx`)**
+   - Created a new component for the add button
+   - Implemented as a circular button with a plus icon
+   - Positioned relative to parent node
+   - Uses SVG for rendering the button and icon
+
+2. **Enhanced Model Source**
+   - Renamed `model-source.ts` to `mindmap-model-source.ts`
+   - Added hover feedback handling
+   - Implemented dynamic add button showing/hiding on hover
+   - Extended action handling for hover feedback
+
+### Dependency Injection Updates
+
+Modified `di.config.ts` to support new features:
+
+- Added button configuration with `configureModelElement`
+- Disabled layout features for the add button
+- Implemented basic `AddButtonHandler` structure
+- Added new imports for button handling and layout features
+
+### Technical Implementation Details
+
+1. **Hover Feedback System**
+   - Implemented `HoverFeedbackAction` handling
+   - Added dynamic element management for hover states
+   - Created button show/hide logic based on mouse position
+
+2. **Button Implementation**
+   - Added button type 'button:add'
+   - Implemented button view with SVG graphics
+   - Set up handler structure for button interactions
+
+This step focuses on making the mindmap more interactive by adding visual feedback and the groundwork for node manipulation features.

@@ -30,3 +30,19 @@ html, body {
   fill: white;
   stroke: black;
 }
+
+.sprotty-node.mouseover {
+  fill: #e0e0e0;
+}
+
+.sprotty-node.selected {
+  stroke-width: 3;
+}
+
+.add .sprotty-button-bg {
+  fill: #00ff00;
+}
+
+.add .sprotty-icon {
+  stroke: rgb(130, 19, 19);
+}
