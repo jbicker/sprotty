@@ -14,12 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import '@vscode/codicons/dist/codicon.css';
-import { Container, ContainerModule } from 'inversify';
+import { Container, ContainerModule, injectable } from 'inversify';
 import {
     configureViewerOptions, SGraphView,
     loadDefaultModules,
-    SGraphImpl, configureModelElement, SNodeImpl, RectangularNodeView, SLabelImpl, SLabelView, TYPES    } from 'sprotty';
-import { MindmapModelSource } from './model-source';
+    SGraphImpl, configureModelElement, SNodeImpl, RectangularNodeView, SLabelImpl, SLabelView, TYPES, SButtonImpl,
+    layoutableChildFeature,
+    configureButtonHandler,
+    IButtonHandler} from 'sprotty';
+import { MindmapModelSource } from './mindmap-model-source';
+import { AddButtonView } from './mindmap-views';
+import { Action } from 'sprotty-protocol';
 
 export default (containerId: string) => {
     require('sprotty/css/sprotty.css');
@@ -33,7 +38,11 @@ export default (containerId: string) => {
         configureModelElement(context, 'graph', SGraphImpl, SGraphView);
         configureModelElement(context, 'node', SNodeImpl, RectangularNodeView);
         configureModelElement(context, 'label', SLabelImpl, SLabelView);
+        configureModelElement(context, 'button:add', SButtonImpl, AddButtonView, {
+            disable: [layoutableChildFeature]
+        });
 
+        configureButtonHandler(context, 'button:add', AddButtonHandler);
 
         configureViewerOptions(context, {
             needsClientLayout: true,
@@ -46,3 +55,10 @@ export default (containerId: string) => {
     container.load(mindmapModule);
     return container;
 };
+
+@injectable()
+class AddButtonHandler implements IButtonHandler {
+    buttonPressed(button: SButtonImpl): (Action | Promise<Action>)[] {
+        throw new Error('Method not implemented.');
+    }
+}

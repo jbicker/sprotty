@@ -15,9 +15,11 @@
  ********************************************************************************/
 
 import { injectable } from 'inversify';
-import { LocalModelSource } from 'sprotty';
+import { ActionHandlerRegistry, LocalModelSource } from 'sprotty';
 import {
-    SGraph, SLabel, SModelRoot, SNode
+    Action,
+    HoverFeedbackAction,
+    SGraph, SLabel, SModelRoot, SNode, SButton
 } from 'sprotty-protocol';
 
 @injectable()
@@ -25,6 +27,11 @@ export class MindmapModelSource extends LocalModelSource {
     constructor() {
         super();
         this.currentRoot = this.initializeModel();
+    }
+
+    override initialize(registry: ActionHandlerRegistry): void {
+        super.initialize(registry);
+        registry.register(HoverFeedbackAction.KIND, this);
     }
 
     initializeModel(): SModelRoot {
@@ -47,8 +54,32 @@ export class MindmapModelSource extends LocalModelSource {
         const graph: SGraph = {
             id: 'graph',
             type: 'graph',
-            children: [node0 ]
+            children: [node0]
         };
         return graph;
+    }
+
+    handleHoverAction(action: HoverFeedbackAction): void {
+        const element = {
+            element: {
+                id: action.mouseoverElement + '-add-button',
+                type: 'button:add',
+                pressed: false,
+                enabled: true
+            } as SButton,
+            parentId: action.mouseoverElement
+        };
+        if (action.mouseIsOver) {
+            this.addElements([element]);
+        } else if (!action.mouseIsOver) {
+            this.removeElements([{elementId: element.element.id, parentId: element.parentId}]);
+        };
+    }
+
+    override handle(action: Action): void {
+        super.handle(action);
+        if (action.kind === HoverFeedbackAction.KIND) {
+            this.handleHoverAction(action as HoverFeedbackAction);
+        }
     }
 }
