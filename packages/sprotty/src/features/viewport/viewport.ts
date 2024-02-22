@@ -15,16 +15,19 @@
  ********************************************************************************/
 
 import { injectable, inject } from 'inversify';
-import { GetViewportAction, ResponseAction, SetViewportAction, ViewportResult } from 'sprotty-protocol/lib/actions';
+import { GetViewportAction, ResponseAction, SetViewportAction, TriggerResizeAction, ViewportResult } from 'sprotty-protocol/lib/actions';
 import { Viewport } from 'sprotty-protocol/lib/model';
 import { Point } from 'sprotty-protocol/lib/utils/geometry';
 import { SModelElementImpl, SModelRootImpl } from '../../base/model/smodel';
-import { MergeableCommand, ICommand, CommandExecutionContext, CommandReturn } from '../../base/commands/command';
+import { MergeableCommand, ICommand, CommandExecutionContext, CommandReturn, Command } from '../../base/commands/command';
 import { Animation } from '../../base/animations/animation';
 import { isViewport, limitViewport } from './model';
 import { TYPES } from '../../base/types';
 import { ModelRequestCommand } from '../../base/commands/request-command';
 import { ViewerOptions } from '../../base/views/viewer-options';
+import { InitializeCanvasBoundsAction } from '../../base/features/initialize-canvas';
+import { IActionDispatcher } from '../../base/actions/action-dispatcher';
+import { getWindowScroll } from '../../utils/browser';
 
 @injectable()
 export class SetViewportCommand extends MergeableCommand {
@@ -102,6 +105,53 @@ export class GetViewportCommand extends ModelRequestCommand {
         }
         return ViewportResult.create(viewport, elem.canvasBounds, this.action.requestId);
     }
+}
+
+/**
+ * Command for triggering resize handling without window.resize event.
+*/
+@injectable()
+export class TriggerResizeHandlingCommand extends Command {
+    static readonly KIND = 'resize';
+
+    @inject(TYPES.IActionDispatcher) protected actionDispatcher: IActionDispatcher;
+    @inject(TYPES.ViewerOptions) protected options: ViewerOptions;
+
+    constructor(@inject(TYPES.Action) protected readonly action: TriggerResizeAction) {
+        super();
+    }
+
+    protected getBoundsInPage(element: Element) {
+        const bounds = element.getBoundingClientRect();
+        const scroll = getWindowScroll();
+        return {
+            x: bounds.left + scroll.x,
+            y: bounds.top + scroll.y,
+            width: bounds.width,
+            height: bounds.height
+        };
+    }
+
+
+    execute(context: CommandExecutionContext): CommandReturn {
+        const baseDiv = document.getElementById(this.options.baseDiv);
+        if (baseDiv !== null) {
+            const newBounds = this.getBoundsInPage(baseDiv as Element);
+            this.actionDispatcher.dispatch(InitializeCanvasBoundsAction.create(newBounds));
+        }
+        return { model: context.root, modelChanged: false };
+    }
+
+    undo(context: CommandExecutionContext): CommandReturn {
+        return { model: context.root, modelChanged: false };
+    }
+
+    redo(context: CommandExecutionContext): CommandReturn {
+        return { model: context.root, modelChanged: false };
+    }
+
+
+
 }
 
 export class ViewportAnimation extends Animation {

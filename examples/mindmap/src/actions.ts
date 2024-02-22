@@ -14,41 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+export interface AddNodeAction {
+    kind: typeof AddNodeAction.KIND
+    predecessorId: string
 }
+export namespace AddNodeAction {
+    export const KIND = 'addNode';
 
-#sprotty_graph {
-  width: 100%;
-  height: 100%;
-}
-
-.sprotty-node {
-  fill: white;
-  stroke: black;
-}
-
-.sprotty-node.mouseover {
-  fill: #e0e0e0;
-}
-
-.sprotty-node.selected {
-  stroke-width: 3;
-}
-
-.add .sprotty-button-bg {
-  fill: #00ff00;
-}
-
-.add .sprotty-icon {
-  stroke: rgb(130, 19, 19);
-}
-
-.sprotty-edge path {
-  stroke-width: 1px;
-  stroke: black;
-  fill: none;
+    export function create(options: { predecessorId: string }): AddNodeAction {
+        return {
+            kind: KIND,
+            predecessorId: options.predecessorId
+        };
+    }
 }

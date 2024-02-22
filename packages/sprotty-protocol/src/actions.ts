@@ -598,6 +598,22 @@ export namespace GetViewportAction {
 }
 
 /**
+ * Triggers resize of the viewport
+ */
+export interface TriggerResizeAction extends Action {
+    kind: typeof TriggerResizeAction.KIND
+}
+export namespace TriggerResizeAction {
+    export const KIND = 'triggerResize';
+
+    export function create(): TriggerResizeAction {
+        return {
+            kind: KIND
+        };
+    }
+}
+
+/**
  * Response to a `GetViewportAction`.
  */
 export interface ViewportResult extends ResponseAction {

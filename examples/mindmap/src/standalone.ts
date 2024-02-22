@@ -22,3 +22,5 @@ export default function runMindmap() {
     const modelSource = container.get<LocalModelSource>(TYPES.ModelSource);
     modelSource.updateModel();
 }
+
+document.getElementById
