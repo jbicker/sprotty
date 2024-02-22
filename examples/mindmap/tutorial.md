@@ -111,3 +111,153 @@ Modified `di.config.ts` to support new features:
    - Set up handler structure for button interactions
 
 This step focuses on making the mindmap more interactive by adding visual feedback and the groundwork for node manipulation features.
+
+## Step 3: Label Editing and Node Creation
+
+In this step, we've added two major features to make our mindmap truly interactive: editable labels and the ability to create new connected nodes. Here's what we've implemented:
+
+### Label Editing
+
+We've made the node labels editable, allowing users to modify the content of any node in the mindmap. This includes:
+
+- Direct text editing of node labels
+- Validation of label content
+- Visual feedback during editing
+
+### Node Creation with Connections
+
+When clicking the add button on a node, the following happens:
+
+- A new node is created
+- An edge is automatically added connecting the parent and new node
+- The new node's label is immediately editable
+
+### Technical Implementation Details
+
+#### 1. Label Editing System
+
+To enable label editing, we need to implement several components:
+
+1. **Configure Edit Label Feature in `di.config.ts`**
+```typescript
+// Add EditLabelUI to the container
+configureModelElement(context, 'edit-label', EditLabelUI, EditLabelView);
+
+// Enable command palette and editing
+bind(EditLabelKeyListener).toSelf().inSingletonScope();
+bind(TYPES.ICommandPaletteActionProvider).to(EditLabelActionProvider);
+```
+
+2. **Implement Label Validation in `mindmap-model-source.ts`**
+
+```typescript
+@injectable()
+export class MindmapModelSource extends LocalModelSource {
+    // ... existing code ...
+
+    handleValidateLabelEdit(action: ValidateLabelEditAction): Action[] {
+        const text = action.text;
+        if (text.length < 1) {
+            return [
+                createValidationResult(false, 'Label must not be empty')
+            ];
+        }
+        return [
+            createValidationResult(true)
+        ];
+    }
+}
+```
+
+1. **Add Edit Label Action Handler**
+```typescript
+@injectable()
+export class MindmapModelSource extends LocalModelSource {
+    // ... existing code ...
+
+    handleApplyLabelEdit(action: ApplyLabelEditAction): Action[] {
+        const label = this.findElement(action.labelId);
+        if (label instanceof SLabelImpl) {
+            label.text = action.text;
+            return [
+                UpdateModelAction.create(this.currentRoot)
+            ];
+        }
+        return [];
+    }
+}
+```
+
+#### 2. Node and Edge Creation
+
+When a user clicks the add button, we need to:
+
+1. **Create New Node with Unique ID**
+```typescript
+private createNewNode(parentId: string): SNode {
+    const nodeId = `node${this.nodeCounter++}`;
+    return {
+        id: nodeId,
+        type: 'node',
+        position: this.calculateNewPosition(parentId),
+        layout: 'vbox',
+        children: [
+            <SLabel>{
+                id: `label${nodeId}`,
+                type: 'label',
+                text: 'New Idea'
+            }
+        ]
+    };
+}
+```
+
+2. **Create Edge Between Nodes**
+```typescript
+private createEdge(sourceId: string, targetId: string): SEdge {
+    return {
+        id: `edge${this.edgeCounter++}`,
+        type: 'edge',
+        sourceId: sourceId,
+        targetId: targetId
+    };
+}
+```
+
+3. **Handle Add Button Click**
+```typescript
+@injectable()
+export class AddButtonHandler extends AbstractUIExtension {
+    handle(action: AddButtonClickAction): Action[] {
+        const node = this.findElement(action.nodeId);
+        if (node) {
+            const newNode = this.createNewNode(node.id);
+            const edge = this.createEdge(node.id, newNode.id);
+
+            // Add new elements to the model
+            this.addElements([newNode, edge]);
+
+            // Start editing the new node's label
+            return [
+                EditLabelAction.create(newNode.children[0].id)
+            ];
+        }
+        return [];
+    }
+}
+```
+
+The implementation follows these key principles:
+- Each node has a unique ID generated incrementally
+- New nodes are positioned relative to their parent
+- Edges are created automatically when adding nodes
+- Label editing is triggered immediately for new nodes
+- All changes are validated before being applied to the model
+
+This implementation provides a smooth user experience where:
+1. Users can double-click any label to edit it
+2. Clicking the add button creates a connected node
+3. New nodes are immediately editable
+4. Empty labels are prevented through validation
+
+This step transforms our mindmap from a static visualization into a fully interactive diagram where users can both edit existing content and expand their ideas by adding new connected nodes.

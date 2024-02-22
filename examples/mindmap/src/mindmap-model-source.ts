@@ -19,8 +19,10 @@ import { ActionHandlerRegistry, LocalModelSource } from 'sprotty';
 import {
     Action,
     HoverFeedbackAction,
-    SGraph, SLabel, SModelRoot, SNode, SButton
+    SGraph, SLabel, SModelRoot, SButton, SEdge, CreateElementAction, DeleteElementAction
 } from 'sprotty-protocol';
+import { MindmapNode } from './model';
+import { AddNodeAction } from './actions';
 
 @injectable()
 export class MindmapModelSource extends LocalModelSource {
@@ -32,10 +34,11 @@ export class MindmapModelSource extends LocalModelSource {
     override initialize(registry: ActionHandlerRegistry): void {
         super.initialize(registry);
         registry.register(HoverFeedbackAction.KIND, this);
+        registry.register(AddNodeAction.KIND, this);
     }
 
     initializeModel(): SModelRoot {
-        const node0: SNode = {
+        const node0: MindmapNode = {
             id: 'node0',
             type: 'node',
             position: {
@@ -49,7 +52,9 @@ export class MindmapModelSource extends LocalModelSource {
                     type: 'label',
                     text: 'My Idea'
                 },
-            ]
+            ],
+            successors: 0,
+            predecessors: 0
         };
         const graph: SGraph = {
             id: 'graph',
@@ -70,16 +75,55 @@ export class MindmapModelSource extends LocalModelSource {
             parentId: action.mouseoverElement
         };
         if (action.mouseIsOver) {
-            this.addElements([element]);
+            this.actionDispatcher.dispatch(CreateElementAction.create(element.element, { containerId: element.parentId }));
         } else if (!action.mouseIsOver) {
-            this.removeElements([{elementId: element.element.id, parentId: element.parentId}]);
+            this.actionDispatcher.dispatch(DeleteElementAction.create([element.element.id]));
         };
+    }
+
+    async handleAddNodeAction(action: AddNodeAction): Promise<void> {
+        const root = this.currentRoot as SGraph;
+        const parentNode = root.children.find(child => child.id === action.predecessorId) as MindmapNode;
+        const parentPosition = parentNode.position;
+        const parentSize = parentNode.size;
+        const parentSuccessorCount = parentNode.successors;
+        const id = `${parentNode.id}_successor_${parentSuccessorCount}`;
+        const newNode: MindmapNode = {
+            id,
+            type: 'node',
+            position: {
+                x: (parentPosition?.x ?? 0) + (parentSize?.width ?? 0) + 100,
+                y: (parentPosition?.y ?? 0) + parentSuccessorCount * 100
+            },
+            layout: 'vbox',
+            children: [
+                <SLabel>{
+                    id: `${id}_label`,
+                    type: 'label',
+                    text: 'New Idea'
+                },
+            ],
+            successors: 0,
+            predecessors: 1
+        };
+        const newEdge = <SEdge>{
+            id: `${parentNode.id}_to_${id}`,
+            type: 'edge',
+            sourceId: parentNode.id,
+            targetId: id,
+            cssClasses: ['mindmap-edge']
+        };
+        parentNode.successors += 1;
+        root.children.push(newNode, newEdge);
+        this.setModel(root);
     }
 
     override handle(action: Action): void {
         super.handle(action);
         if (action.kind === HoverFeedbackAction.KIND) {
             this.handleHoverAction(action as HoverFeedbackAction);
+        } else if (action.kind === AddNodeAction.KIND) {
+            this.handleAddNodeAction(action as AddNodeAction);
         }
     }
 }

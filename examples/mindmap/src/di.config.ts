@@ -14,17 +14,27 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  ********************************************************************************/
 import '@vscode/codicons/dist/codicon.css';
-import { Container, ContainerModule, injectable } from 'inversify';
+import { Container, ContainerModule, inject, injectable } from 'inversify';
 import {
     configureViewerOptions, SGraphView,
     loadDefaultModules,
-    SGraphImpl, configureModelElement, SNodeImpl, RectangularNodeView, SLabelImpl, SLabelView, TYPES, SButtonImpl,
+    SGraphImpl, configureModelElement, RectangularNodeView, SLabelImpl, SLabelView, TYPES, SButtonImpl,
     layoutableChildFeature,
     configureButtonHandler,
-    IButtonHandler} from 'sprotty';
+    IButtonHandler,
+    editLabelFeature,
+    configureCommand,
+    CreateElementCommand,
+    SEdgeImpl,
+    PolylineEdgeView,
+    DeleteElementCommand,
+    deletableFeature
+} from 'sprotty';
 import { MindmapModelSource } from './mindmap-model-source';
 import { AddButtonView } from './mindmap-views';
 import { Action } from 'sprotty-protocol';
+import { MindmapNodeImpl } from './model';
+import { AddNodeAction } from './actions';
 
 export default (containerId: string) => {
     require('sprotty/css/sprotty.css');
@@ -36,13 +46,19 @@ export default (containerId: string) => {
         const context = { bind, unbind, isBound, rebind };
 
         configureModelElement(context, 'graph', SGraphImpl, SGraphView);
-        configureModelElement(context, 'node', SNodeImpl, RectangularNodeView);
-        configureModelElement(context, 'label', SLabelImpl, SLabelView);
+        configureModelElement(context, 'node', MindmapNodeImpl, RectangularNodeView);
+        configureModelElement(context, 'edge', SEdgeImpl, PolylineEdgeView);
+        configureModelElement(context, 'label', SLabelImpl, SLabelView, {
+            enable: [editLabelFeature]
+        });
         configureModelElement(context, 'button:add', SButtonImpl, AddButtonView, {
-            disable: [layoutableChildFeature]
+            disable: [layoutableChildFeature], enable: [deletableFeature]
         });
 
         configureButtonHandler(context, 'button:add', AddButtonHandler);
+
+        configureCommand(context, CreateElementCommand);
+        configureCommand(context, DeleteElementCommand);
 
         configureViewerOptions(context, {
             needsClientLayout: true,
@@ -58,7 +74,10 @@ export default (containerId: string) => {
 
 @injectable()
 class AddButtonHandler implements IButtonHandler {
+    @inject(TYPES.ModelSource) protected modelSource: MindmapModelSource;
+
     buttonPressed(button: SButtonImpl): (Action | Promise<Action>)[] {
-        throw new Error('Method not implemented.');
+        const createAction =  AddNodeAction.create({predecessorId: button.parent.id});
+        return [createAction];
     }
 }
